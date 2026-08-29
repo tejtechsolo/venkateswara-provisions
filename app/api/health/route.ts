@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   return NextResponse.json({
-    ok: true,
+    status: 'ok',
     service: 'venkateswara-provisions',
-    version: '0.1.0',
+    version: process.env.npm_package_version ?? '0.1.0',
     timestamp: new Date().toISOString(),
-    database: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'configured' : 'not_configured',
+    supabaseConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
   })
 }
