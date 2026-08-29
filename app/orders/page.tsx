@@ -1,0 +1,9 @@
+import { createClient } from '../../lib/supabase/server'
+
+export default async function OrdersPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return <main style={{ padding: 40 }}>Please sign in to view orders.</main>
+  const { data: orders, error } = await supabase.from('orders').select('id,status,total,created_at,order_items(product_name,sku,quantity,unit_price,line_total)').eq('customer_id', user.id).order('created_at', { ascending: false })
+  return <main style={{ maxWidth: 1000, margin: '0 auto', padding: '48px 24px' }}><p style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>My Orders</p><h1>Order history</h1>{error ? <p role="alert">Unable to load orders.</p> : !orders?.length ? <p>No orders yet. Browse the catalog to place your first wholesale order.</p> : <section style={{ display: 'grid', gap: 16, marginTop: 24 }}>{orders.map(order => <article key={order.id} style={{ border: '1px solid #e5e7eb', borderRadius: 14, padding: 20, background: 'white' }}><div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}><strong>Order {order.id.slice(0, 8).toUpperCase()}</strong><span>{order.status}</span></div><p style={{ color: '#667085' }}>{new Date(order.created_at).toLocaleString('en-IN')}</p><div>{order.order_items?.map((item: { product_name: string; sku: string; quantity: number; unit_price: number; line_total: number }) => <div key={item.sku} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid #f2f4f7' }}><span>{item.product_name} × {item.quantity}</span><span>₹{Number(item.line_total).toFixed(2)}</span></div>)}</div><strong style={{ display: 'block', marginTop: 12 }}>Total ₹{Number(order.total).toFixed(2)}</strong></article>)}</section>}</main>
+}
